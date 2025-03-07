@@ -1,0 +1,82 @@
+services:
+  db:
+    image: 'postgres:latest'
+    restart: always
+    container_name: product-service-db
+    environment:
+      POSTGRES_DB: product
+      POSTGRES_USER_FILE: /run/secrets/postgres_username
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    secrets:
+      - postgres_username
+      - postgres_password
+
+  backend:
+    build:
+      context: ..
+      dockerfile: product-service-app/Dockerfile
+
+    container_name: product-service-app
+    environment:
+      HOST: jdbc:postgresql://db:5432/product
+      DATASOURCE_DRIVER: 'org.postgresql.Driver'
+      POSTGRES_DB: product
+      POSTGRES_USER_FILE: /run/secrets/postgres_username
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    depends_on:
+      - db
+      - liquibase
+    secrets:
+      - postgres_username
+      - postgres_password
+
+  liquibase:
+    image: liquibase/liquibase:latest
+    container_name: product-service-liquibase
+    depends_on:
+      - db
+    volumes:
+      - ../liquibase/changelog:/liquibase/changelog
+    command: >
+      sh -c '
+      liquibase
+      --url=jdbc:postgresql://db:5432/product
+      --changelog-file=./changelog/db.changelog-master.yaml
+      --username=$$(cat /run/secrets/postgres_username)
+      --password=$$(cat /run/secrets/postgres_password)
+      update
+      '
+    secrets:
+      - postgres_username
+      - postgres_password
+
+  pgadmin:
+    image: 'dpage/pgadmin4:latest'
+    container_name: pg_admin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: pgadmin@mail.com
+      PGADMIN_DEFAULT_PASSWORD_FILE: /run/secrets/pg_password
+    ports:
+      - "8888:80"
+    depends_on:
+      - db
+    secrets:
+      - pg_password
+
+secrets:
+  postgres_username:
+    file: ../secrets/postgres_user.txt
+  postgres_password:
+    file: ../secrets/postgres_password.txt
+  pg_password:
+    file: ../secrets/pgadmin_password.txt
+
+volumes:
+  db_data:

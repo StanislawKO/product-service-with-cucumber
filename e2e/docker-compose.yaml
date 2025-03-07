@@ -1,0 +1,54 @@
+services:
+  db:
+    image: 'postgres:latest'
+    restart: unless-stopped
+    container_name: product-service-db
+    environment:
+      POSTGRES_DB: product
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+
+  backend:
+    build:
+      context: ..
+      dockerfile: product-service-app/Dockerfile
+
+    restart: always
+    container_name: product-service-app-test
+    environment:
+      HOST: jdbc:postgresql://db:5432/product
+      DATASOURCE_DRIVER: 'org.postgresql.Driver'
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    depends_on:
+      - db
+      - liquibase
+
+  liquibase:
+    image: liquibase/liquibase:latest
+    container_name: product-service-liquibase-test
+    depends_on:
+      - db
+    volumes:
+      - ../liquibase/changelog:/liquibase/changelog
+    command: >
+      sh -c '
+      liquibase
+      --url=jdbc:postgresql://db:5432/product
+      --changelog-file=./changelog/db.changelog-master.yaml
+      --username=postgres
+      --password=postgres
+      update &&
+      liquibase
+      --url=jdbc:postgresql://db:5432/product
+      --changelog-file=./changelog/db.changelog-master.yaml
+      --username=postgres
+      --password=postgres
+      update --contexts=test
+      '

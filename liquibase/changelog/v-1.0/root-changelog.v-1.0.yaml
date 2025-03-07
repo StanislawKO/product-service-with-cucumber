@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - include:
+      file: create-discount-table.sql
+      relativeToChangelogFile: true
+  - include:
+      file: create-product-table.sql
+      relativeToChangelogFile: true

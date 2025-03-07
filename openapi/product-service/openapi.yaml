@@ -1,0 +1,316 @@
+openapi: 3.0.1
+info:
+  title: Product API
+  description:
+    Product service holds data about all known products. 
+    Product itself is a main artifact for sales and marketing departments, 
+    that may be active whether deactivated.
+  version: "1.0"
+servers:
+  - url: http://localhost:8080
+    description: Generated server url
+paths:
+  /products/v1:
+    get:
+      tags:
+        - product-controller
+      operationId: getAllProducts
+      summary: Get all products with pageable
+      parameters:
+        - name: page
+          in: query
+          description: The page number to retrieve
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 0
+        - name: size
+          in: query
+          description: The number of products per page
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 25
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductDto"
+    post:
+      tags:
+        - product-controller
+      operationId: createProduct
+      summary: Create a new product
+      requestBody:
+        description: New Product
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductDto"
+        "400":
+          description: BadRequest (validation exception)
+  /products/v1/{id}:
+    get:
+      tags:
+        - product-controller
+      operationId: getProductById
+      summary: Get product by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductDto"
+    put:
+      tags:
+        - product-controller
+      operationId: updateProduct
+      summary: Update product by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: Update product
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: BadRequest (validation exception)
+    delete:
+      tags:
+        - product-controller
+      operationId: deleteProduct
+      summary: Delete product by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: OK
+  /products/v1/{id}/price:
+    put:
+      tags:
+        - product-controller
+      operationId: updatePriceProduct
+      summary: Update price product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: price
+          in: query
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: BadRequest (validation exception)
+  /products/v1/{id}/active:
+    put:
+      tags:
+        - product-controller
+      operationId: updateActiveDiscountProduct
+      summary: Update active discount product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: active
+          in: query
+          required: true
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: BadRequest (validation exception)
+  /discounts/v1:
+    get:
+      tags:
+        - discount-controller
+      operationId: getAllDiscounts
+      summary: Get all discounts
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DiscountDto"
+    post:
+      tags:
+        - discount-controller
+      operationId: createDiscount
+      summary: Create discounts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DiscountDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiscountDto"
+        "400":
+          description: BadRequest (validation exception)
+  /discounts/v1/{id}:
+    get:
+      tags:
+        - discount-controller
+      operationId: getDiscountById
+      summary: Get discounts by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiscountDto"
+    put:
+      tags:
+        - discount-controller
+      operationId: updateDiscount
+      summary: Update discount by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DiscountDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: BadRequest (validation exception)
+    delete:
+      tags:
+        - discount-controller
+      operationId: deleteDiscount
+      summary: Delete discount by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: OK
+components:
+  schemas:
+    ProductDto:
+      required:
+        - active
+        - description
+        - discountId
+        - duration
+        - price
+        - summary
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        summary:
+          maxLength: 100
+          minLength: 0
+          type: string
+        description:
+          type: string
+        price:
+          minimum: 0.0
+          exclusiveMinimum: false
+          type: number
+        duration:
+          type: integer
+          format: int16
+        discountId:
+          type: integer
+          format: int64
+        active:
+          type: boolean
+    DiscountDto:
+      required:
+        - endTime
+        - startTime
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        amount:
+          maximum: 100
+          minimum: 0
+          type: integer
+          format: int32
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time

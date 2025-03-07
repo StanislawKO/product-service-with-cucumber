@@ -1,0 +1,35 @@
+spring:
+  datasource:
+    url: ${HOST:jdbc:postgresql://localhost:5432/product}
+    username: ${POSTGRES_USER_FILE:postgres}
+    password: ${POSTGRES_PASSWORD_FILE:postgres}
+    driver-class-name: ${DATASOURCE_DRIVER:org.postgresql.Driver}
+    hikari:
+      maximum-pool-size: 20
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+  show-actuator: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http:
+          server:
+            enabled: true
